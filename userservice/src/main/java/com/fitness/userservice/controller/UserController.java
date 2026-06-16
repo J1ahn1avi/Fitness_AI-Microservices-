@@ -13,7 +13,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/users")
 @AllArgsConstructor
 public class UserController {
-
+	
+	@Autowired
     private UserService userService;
 
     @GetMapping("/{userId}")

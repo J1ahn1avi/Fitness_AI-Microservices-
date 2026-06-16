@@ -11,6 +11,7 @@ import lombok.Data;
 public class UserResponse {
 	
 	private String id;
+	private String keycloakId; 
 	private String email;
 	private String password;
 	private String firstName;
@@ -108,7 +109,7 @@ public class UserResponse {
 				&& role == other.role && Objects.equals(updatedAt, other.updatedAt);
 	}
 	public void setKeycloakId(String keycloakId) {
-		// TODO Auto-generated method stub
+		this.keycloakId = keycloakId;
 		
 	}
 	

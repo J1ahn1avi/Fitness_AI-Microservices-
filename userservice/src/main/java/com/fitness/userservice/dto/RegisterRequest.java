@@ -20,6 +20,7 @@ public class RegisterRequest {
 	private String password;
 	private String firstName;
 	private String lastName;
+	private String keycloakId; 
 	@Override
 	public String toString() {
 		return "RegisterRequest [email=" + email + ", password=" + password + ", firstName=" + firstName + ", lastName="
@@ -81,7 +82,7 @@ public class RegisterRequest {
 	}
 	public String getKeycloakId() {
 		// TODO Auto-generated method stub
-		return null;
+		return keycloakId;
 	}
 	
 }
