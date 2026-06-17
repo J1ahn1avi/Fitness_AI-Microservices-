@@ -1,13 +1,16 @@
 package com.example.activityservice.service;
 
-import com.example.activityservice.dto.ActivityRequest;
-import com.example.activityservice.dto.ActivityResponse;
-import com.example.activityservice.model.Activity;
-import com.example.activityservice.repository.ActivityRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import com.example.activityservice.dto.ActivityRequest;
+import com.example.activityservice.dto.ActivityResponse;
+import com.example.activityservice.model.Activity;
+import com.example.activityservice.repository.ActivityRepository;
 
 @Service
 public class ActivityService {
@@ -50,4 +53,18 @@ public class ActivityService {
         response.setUpdatedAt(activity.getUpdatedAt());
         return response;
     }
+
+	public List<ActivityResponse> getUserActivities(String userId) {
+		List<Activity> activities=activityRepository.findByUserId(userId);
+		return activities.stream()
+				.map(this::mapToResponse)
+				.collect(Collectors.toList());
+	}
+
+	public ActivityResponse getActivityById(String activityId) {
+		
+		return activityRepository.findById(activityId)
+				.map(this::mapToResponse)
+				.orElseThrow(() ->new  RuntimeException("Activity not found with id : "+activityId));
+	}
 }
