@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.example.activityservice.dto.ActivityRequest;
@@ -12,19 +14,34 @@ import com.example.activityservice.dto.ActivityResponse;
 import com.example.activityservice.model.Activity;
 import com.example.activityservice.repository.ActivityRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class ActivityService {
 
     // Manual logger - no Lombok needed
     private static final Logger log = LoggerFactory.getLogger(ActivityService.class);
 
     private final ActivityRepository activityRepository;
-
-    public ActivityService(ActivityRepository activityRepository) {
+    private final UserValidationService userValidationService;
+    private final RabbitTemplate rabbitTemplate ;
+    
+    @Value("${rabbitmq.exchange.name}")
+    private String exchange;
+    @Value("${rabbitmq.routing.key}")
+    private String routingKey;
+    public ActivityService(ActivityRepository activityRepository, UserValidationService userValidationService) {
         this.activityRepository = activityRepository;
+		this.userValidationService = userValidationService;
+		this.rabbitTemplate = new RabbitTemplate();
     }
 
     public ActivityResponse trackActivity(ActivityRequest request) {
+    	boolean isValidUser = userValidationService.validateUser(request.getUserId());
+    	if(!isValidUser) {
+    		throw new RuntimeException("Invalid user: "+ request.getUserId());
+    	}
         Activity activity = Activity.builder()
                 .userId(request.getUserId())
                 .type(request.getType())
@@ -36,7 +53,10 @@ public class ActivityService {
 
         Activity savedActivity = activityRepository.save(activity);
         log.info("Activity tracked for user: {}", request.getUserId());  // ← log works now
-
+        try {
+        	rabbitTemplate.convertAndSend(exchange,routingKey,savedActivity);
+        }catch(Exception e){
+        	log.error("Failed to publish activity to RabbitMQ: ", e);        }
         return mapToResponse(savedActivity);
     }
 
